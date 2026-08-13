@@ -12,3 +12,11 @@ Start the docker compose:
 Connect with psql:
 
   docker compose exec db psql -U user
+
+Remove docker volume and start with a fresh start
+
+  docker volume rm spacedchess_db-data
+
+
+Populate spacedchess database
+  docker compose exec -T db psql -U user -d spacedchess < scripts/seed.sql

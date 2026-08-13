@@ -71,14 +71,14 @@ Core entity. One row per flashcard.
 
 - id
 - user_id (owner)
-- card_type (enum: `tactical_opportunity`, `blunder`, `strategic_mistake`)
+- card_type (enum: `tactic`, `blunder`, `strategy`)
 - fen (the position shown to the user; for `blunder` cards, this is the
   position **before** the mistake)
 - side_to_move (derivable from FEN, but may be stored explicitly for
   convenience)
 - created_at
 - updated_at
-- source_note (optional free-text: e.g. link to the source game, date
+- notes (optional free-text: e.g. link to the source game, date
   played, opponent — purely for the user's own reference; never intended
   to be exposed publicly even in a hypothetical future sharing feature,
   per SPEC.md Section 12)
@@ -91,10 +91,10 @@ recommended approach is:
 - A shared `cards` table with the common fields above.
 - A `card_details` `jsonb` column (or three separate related tables)
   holding type-specific data:
-  - `tactical_opportunity`: `{ accepted_solution: <move or line> }`
+  - `tactic`: `{ accepted_solution: <move or line> }`
   - `blunder`: `{ intended_move: <move>, refutation: <move or line>,
     correct_alternative: <move or line> }`
-  - `strategic_mistake`: `{ question: <text>, answer: <text> }`
+  - `strategy`: `{ question: <text>, answer: <text> }`
 
 Either approach (jsonb vs. separate tables) is acceptable; jsonb is
 suggested because the fields are simple, queried mostly by ID rather than
@@ -156,8 +156,8 @@ optimization from historical review data, per SPEC.md Section 12).
 - card_id
 - reviewed_at
 - grade (representation depends on card type: binary correct/incorrect for
-  tactical_opportunity and blunder; self-assessed remembered/not for
-  strategic_mistake — a single normalized field, e.g. an integer or enum,
+  tactic and blunder; self-assessed remembered/not for
+  strategy — a single normalized field, e.g. an integer or enum,
   should be used so review_log is uniform across card types even though
   the grading UI differs)
 - resulting_interval_days (the interval computed by SM-2 as a result of
