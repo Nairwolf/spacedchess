@@ -28,12 +28,12 @@ a Postgres dev environment, and a basic Go API skeleton (health endpoint).
 Each slice is one short-lived feature branch merged to `main` when working and tested.
 Mark slices done as they land.
 
-- [ ] **Slice 1 — DB schema** (`feat/db-schema`): `init/001_init.sql` with all tables: `users`, `cards` (jsonb details), `tags`, `card_tags`, `sets`, `set_cards`, `review_state`, `review_log`.
+- [ ] **Slice 1 — Auth schema** (`feat/db-schema`): `users` + `sessions` tables in `init/001_init.sql`. Remaining tables land in the slices that need them.
 - [ ] **Slice 2 — Go project structure** (`feat/go-skeleton`): `go.mod`, `cmd/api/main.go`, `internal/` layout, env-var config, DB connection pool, health endpoint wired properly.
 - [ ] **Slice 3 — Auth** (`feat/auth`): register, login, logout endpoints; session-cookie middleware; password hashing.
-- [ ] **Slice 4 — Card CRUD** (`feat/card-crud`): full CRUD for cards behind auth middleware; list filterable by type/tag/set.
-- [ ] **Slice 5 — Tags & Sets** (`feat/tags-sets`): tag and set CRUD; card↔tag and card↔set join management.
-- [ ] **Slice 6 — Review engine** (`feat/review-engine`): `GET /review/due`, `POST /review/:id/grade`; SM-2 logic; `review_state` updates; `review_log` appends.
+- [ ] **Slice 4 — Card CRUD** (`feat/card-crud`): `cards` table (real schema, replacing the placeholder); full CRUD behind auth middleware; list filterable by type/tag/set.
+- [ ] **Slice 5 — Tags & Sets** (`feat/tags-sets`): `tags`, `card_tags`, `sets`, `set_cards` tables; tag and set CRUD; join management.
+- [ ] **Slice 6 — Review engine** (`feat/review-engine`): `review_state` and `review_log` tables; `GET /review/due`, `POST /review/:id/grade`; SM-2 logic.
 - [ ] **Slice 7 — React SPA scaffold** (`feat/frontend-scaffold`): Vite + TypeScript, router, auth flow (login page, protected routes), served by Go binary.
 - [ ] **Slice 8 — Card creation UI** (`feat/frontend-cards`): FEN paste + type selection + type-specific fields; chessground position preview.
 - [ ] **Slice 9 — Review UI** (`feat/frontend-review`): per-card-type review flows with chessground board, grading, sequential reveal for Blunder.
