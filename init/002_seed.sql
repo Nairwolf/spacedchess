@@ -27,3 +27,10 @@ INSERT INTO cards (user_id, card_type, fen, notes, card_details) VALUES
     'vs. IM_Someone, classical, 2026-06-08',
     '{"question": "Why is trading the light-squared bishop here wrong?", "answer": "It hands Black the bishop pair with an open long diagonal, and my knight has no good square to compensate."}'
   );
+
+-- One live session and one already expired, so auth middleware can be
+-- exercised against both. Real ids are crypto/rand tokens; these are
+-- deliberately obvious placeholders.
+INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES
+  ('dev_session_valid',   1, now(),                     now() + interval '7 days'),
+  ('dev_session_expired', 1, now() - interval '8 days', now() - interval '1 day');
