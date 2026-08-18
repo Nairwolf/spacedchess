@@ -13,10 +13,20 @@ Only Postgres runs in Compose for now; the Go API is run directly on the host.
 docker compose up -d      # start Postgres on localhost:5432
 docker compose ps         # check it's running
 docker compose logs -f db # follow logs
-docker compose stop       # stop, keeping data
+docker compose stop       # stop, keeping the container and its data
+docker compose down -v    # stop and discard the database
 ```
 
 Credentials are `user` / `password`, database `spacedchess`.
+
+**The database is throwaway.** There is no named volume, so nothing outlives
+`down -v`. That's deliberate while the schema is still moving — a persistent
+volume is worth adding once the backend does something worth keeping.
+
+Always pass `-v` to `down`. The postgres image declares
+`VOLUME /var/lib/postgresql`, so Docker creates an anonymous volume even though
+the compose file asks for none; without `-v` those are left behind as dangling
+volumes.
 
 ### Connect with psql
 
@@ -45,24 +55,24 @@ docker compose exec -T db psql -U user -d spacedchess -c 'SELECT * FROM users;'
 ### Schema and seed data
 
 `./init` is mounted into the container's entrypoint directory. Its files run in
-filename order, and **only against an empty data volume**:
+filename order whenever the database starts empty:
 
 - `init/001_init.sql` — the schema
 - `init/002_seed.sql` — dev seed data: one user and one card of each type
 
-So a fresh volume comes up already populated. Delete `002_seed.sql` if you want
-an empty database.
+So every fresh start comes up already populated. Delete `002_seed.sql` if you
+want an empty database.
 
 ### Reset
 
-There is no migration tool yet, so changing the schema means destroying the
-volume and losing the data in it:
+After editing either init file — or any time you want a clean slate:
 
 ```sh
 docker compose down -v && docker compose up -d
 ```
 
-This re-runs both init files, giving you a clean schema plus fresh seed data.
+There is no migration tool yet, so this is also how schema changes are applied:
+throw the database away and rebuild it.
 
 ### Check the database is working
 

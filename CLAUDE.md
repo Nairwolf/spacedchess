@@ -42,15 +42,21 @@ Mark slices done as they land.
 
 ```sh
 docker compose up -d              # start Postgres (5432, user/password)
-docker compose exec db psql -U user
+docker compose exec db psql -U user -d spacedchess
 ```
 
-`./init` is mounted into the container's entrypoint dir, so SQL files there run
-only on a **fresh** volume. After editing them:
+The database is **throwaway** — there is no named volume. `./init` is mounted
+into the container's entrypoint dir and its files run in filename order on every
+fresh start: `001_init.sql` (schema) then `002_seed.sql` (dev data). After
+editing either:
 
 ```sh
 docker compose down -v && docker compose up -d
 ```
+
+The `-v` matters: the postgres image declares `VOLUME /var/lib/postgresql`, so
+Docker creates an anonymous volume regardless. Without `-v` those accumulate as
+dangling volumes and the reset is not clean.
 
 Build/test/lint commands for the Go API and React frontend do not exist yet; add
 them here when those parts land.
