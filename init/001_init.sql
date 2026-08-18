@@ -19,3 +19,12 @@ CREATE TABLE cards (
 );
 
 CREATE INDEX idx_cards_user_id ON cards (user_id);
+
+-- id is the cookie value, so it must be an unguessable random token
+-- generated with crypto/rand — never a predictable sequence.
+ CREATE TABLE sessions (
+  id         TEXT PRIMARY KEY,
+  user_id    INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL
+);
