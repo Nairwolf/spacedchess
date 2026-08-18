@@ -2,8 +2,9 @@
 -- (the entrypoint executes files in filename order). Delete this file to
 -- start with an empty database.
 
+-- bcrypt hash of 'password'.
 INSERT INTO users (username, password_hash) VALUES
-  ('nairwolf', 'placeholder_hash');
+  ('nairwolf', '$2a$10$NYHyOkDex5bFF62UlTCNdeCzIw7T7WK4P.Lrriwm1M.RM0mcBk9ne');
 
 INSERT INTO cards (user_id, card_type, fen, notes, card_details) VALUES
   (

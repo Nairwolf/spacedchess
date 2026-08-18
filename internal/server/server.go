@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"spacedchess/internal/config"
 	"spacedchess/internal/store"
 )
 
@@ -32,12 +33,16 @@ func Health(s *store.Store) http.HandlerFunc {
 	}
 }
 
-func addRoutes(mux *http.ServeMux, s *store.Store) {
+func addRoutes(mux *http.ServeMux, s *store.Store, cfg config.Config) {
 	mux.Handle("GET /health", Health(s))
+	mux.Handle("POST /auth/register", Register(s, cfg))
+	mux.Handle("POST /auth/login", Login(s, cfg))
+	mux.Handle("POST /auth/logout", Logout(s, cfg))
+	mux.Handle("GET /auth/me", requireAuth(s, Me()))
 }
 
-func NewServer(s *store.Store) http.Handler {
+func NewServer(s *store.Store, cfg config.Config) http.Handler {
 	mux := http.NewServeMux()
-	addRoutes(mux, s)
+	addRoutes(mux, s, cfg)
 	return mux
 }

@@ -4,11 +4,13 @@ import "testing"
 
 func TestLoad(t *testing.T) {
 	tests := []struct {
-		name        string
-		databaseURL string
-		port        string
-		wantAddr    string
-		wantErr     bool
+		name             string
+		databaseURL      string
+		port             string
+		cookieSecure     string
+		wantAddr         string
+		wantCookieSecure bool
+		wantErr          bool
 	}{
 		{
 			name:    "missing DATABASE_URL",
@@ -26,12 +28,20 @@ func TestLoad(t *testing.T) {
 			port:        "9000",
 			wantAddr:    ":9000",
 		},
+		{
+			name:             "cookie secure",
+			databaseURL:      "postgres://localhost/db",
+			cookieSecure:     "true",
+			wantAddr:         ":8080",
+			wantCookieSecure: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("DATABASE_URL", tt.databaseURL)
 			t.Setenv("PORT", tt.port)
+			t.Setenv("COOKIE_SECURE", tt.cookieSecure)
 
 			cfg, err := Load()
 			if tt.wantErr {
@@ -49,6 +59,9 @@ func TestLoad(t *testing.T) {
 			}
 			if cfg.DatabaseURL != tt.databaseURL {
 				t.Errorf("DatabaseURL = %q, want %q", cfg.DatabaseURL, tt.databaseURL)
+			}
+			if cfg.CookieSecure != tt.wantCookieSecure {
+				t.Errorf("CookieSecure = %v, want %v", cfg.CookieSecure, tt.wantCookieSecure)
 			}
 		})
 	}

@@ -27,6 +27,8 @@ services:
     environment:
       - DATABASE_URL=postgres://user:password@db:5432/spacedchess
       - PORT=8080
+      # Dev is plain http on localhost; set true behind TLS.
+      - COOKIE_SECURE=false
     depends_on:
       db:
         condition: service_healthy

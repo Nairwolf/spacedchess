@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	DatabaseURL string
-	Addr        string
+	DatabaseURL  string
+	Addr         string
+	CookieSecure bool
 }
 
 func Load() (Config, error) {
@@ -22,8 +23,10 @@ func Load() (Config, error) {
 		port = "8080"
 	}
 
+	// Off by default so the session cookie works over plain http on localhost.
 	return Config{
-		DatabaseURL: databaseURL,
-		Addr:        ":" + port,
+		DatabaseURL:  databaseURL,
+		Addr:         ":" + port,
+		CookieSecure: os.Getenv("COOKIE_SECURE") == "true",
 	}, nil
 }
