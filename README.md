@@ -42,25 +42,27 @@ To run a single query without opening a shell:
 docker compose exec -T db psql -U user -d spacedchess -c 'SELECT * FROM users;'
 ```
 
-### Reset the schema
+### Schema and seed data
 
-`./init` is mounted into the container's entrypoint directory, so those SQL
-files run **only against an empty data volume**. After editing them you have to
-destroy the volume — there is no migration tool yet, so every schema change
-costs you the data:
+`./init` is mounted into the container's entrypoint directory. Its files run in
+filename order, and **only against an empty data volume**:
+
+- `init/001_init.sql` — the schema
+- `init/002_seed.sql` — dev seed data: one user and one card of each type
+
+So a fresh volume comes up already populated. Delete `002_seed.sql` if you want
+an empty database.
+
+### Reset
+
+There is no migration tool yet, so changing the schema means destroying the
+volume and losing the data in it:
 
 ```sh
 docker compose down -v && docker compose up -d
 ```
 
-### Seed data
-
-`scripts/seed.sql` creates one user and one card of each type. It is not run
-automatically:
-
-```sh
-docker compose exec -T db psql -U user -d spacedchess < scripts/seed.sql
-```
+This re-runs both init files, giving you a clean schema plus fresh seed data.
 
 ### Check the database is working
 

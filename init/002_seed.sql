@@ -1,5 +1,6 @@
--- Temporary/dev seed data. Not run automatically — apply manually with:
---   docker compose exec -T db psql -U user -d spacedchess < seed.sql
+-- Dev seed data. Runs automatically after 001_init.sql on a fresh volume
+-- (the entrypoint executes files in filename order). Delete this file to
+-- start with an empty database.
 
 INSERT INTO users (username, password_hash) VALUES
   ('nairwolf', 'placeholder_hash');
