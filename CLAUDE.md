@@ -16,19 +16,26 @@ short-lived branches; nothing lands on `main` until the slice is working.
 - Run tests, builds, and linters before reporting a task done.
 - **Write code as a human developer would:** terse, direct, idiomatic. No over-engineering, no elaborate abstractions beyond what the task needs, no comment blocks explaining obvious code, practical variable names. Avoid the "AI-generated" tell of excessive structure and ceremony.
 - **Git is the user's responsibility.** Claude writes code; the user reviews the diff, commits, and merges. Claude may suggest a commit message but never runs git commands unless explicitly asked.
+- **Merges to `main` are fast-forward only.** Never squash, never `--no-ff` — the
+  individual small commits are the history the user wants to keep. If `main` has
+  moved, rebase the branch onto it first, then `git merge --ff-only`.
 
 ## Project state
 
 SpacedChess is in early implementation. The repository has design documentation,
-a Postgres dev environment, and a basic Go API skeleton (health endpoint).
-`init/001_init.sql` is a placeholder — the real schema still has to be written.
+a throwaway Postgres dev environment that seeds itself on every start, and a
+basic Go API skeleton (health endpoint, no database wiring yet).
+
+Schema so far: `users` and `sessions` are real; the `cards` table in
+`init/001_init.sql` is still the original placeholder and gets redesigned in
+slice 4.
 
 ## Build order
 
 Each slice is one short-lived feature branch merged to `main` when working and tested.
 Mark slices done as they land.
 
-- [ ] **Slice 1 — Auth schema** (`feat/db-schema`): `users` + `sessions` tables in `init/001_init.sql`. Remaining tables land in the slices that need them.
+- [x] **Slice 1 — Auth schema** (`feat/db-schema`): `users` + `sessions` tables in `init/001_init.sql`. Remaining tables land in the slices that need them.
 - [ ] **Slice 2 — Go project structure** (`feat/go-skeleton`): `go.mod`, `cmd/api/main.go`, `internal/` layout, env-var config, DB connection pool, health endpoint wired properly.
 - [ ] **Slice 3 — Auth** (`feat/auth`): register, login, logout endpoints; session-cookie middleware; password hashing.
 - [ ] **Slice 4 — Card CRUD** (`feat/card-crud`): `cards` table (real schema, replacing the placeholder); full CRUD behind auth middleware; list filterable by type/tag/set.
