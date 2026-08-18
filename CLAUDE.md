@@ -24,9 +24,15 @@ short-lived branches; nothing lands on `main` until the slice is working.
 
 SpacedChess is in early implementation. The repository has design documentation,
 a throwaway Postgres dev environment that seeds itself on every start, and a Go
-API wired to Postgres via a pgx pool — but no product endpoints yet, only
-`/health`. Both services run in Compose; `db`'s healthcheck gates `api`'s
-startup, so the API never races Postgres coming up.
+API wired to Postgres via a pgx pool. Auth is in place — `/auth/register`,
+`/auth/login`, `/auth/logout`, `/auth/me`, and session-cookie middleware — but
+no product endpoints yet beyond `/health`. Both services run in Compose; `db`'s
+healthcheck gates `api`'s startup, so the API never races Postgres coming up.
+
+Sessions are opaque `crypto/rand` tokens stored in the `sessions` table; the
+cookie is `session` (HttpOnly, SameSite=Lax, `Secure` from `COOKIE_SECURE`, 7
+days). Passwords are bcrypt. Registration is open — anyone can create an
+account; a duplicate username is a 409. Error responses are `{"error": "..."}`.
 
 Schema so far: `users` and `sessions` are real; the `cards` table in
 `init/001_init.sql` is still the original placeholder and gets redesigned in
@@ -39,7 +45,7 @@ Mark slices done as they land.
 
 - [x] **Slice 1 — Auth schema** (`feat/db-schema`): `users` + `sessions` tables in `init/001_init.sql`. Remaining tables land in the slices that need them.
 - [x] **Slice 2 — Go project structure** (`feat/go-skeleton`): `go.mod`, `cmd/api/main.go`, `internal/` layout, env-var config, DB connection pool, health endpoint wired properly.
-- [ ] **Slice 3 — Auth** (`feat/auth`): register, login, logout endpoints; session-cookie middleware; password hashing.
+- [x] **Slice 3 — Auth** (`feat/auth`): register, login, logout endpoints; session-cookie middleware; password hashing.
 - [ ] **Slice 4 — Card CRUD** (`feat/card-crud`): `cards` table (real schema, replacing the placeholder); full CRUD behind auth middleware; list filterable by type/tag/set.
 - [ ] **Slice 5 — Tags & Sets** (`feat/tags-sets`): `tags`, `card_tags`, `sets`, `set_cards` tables; tag and set CRUD; join management.
 - [ ] **Slice 6 — Review engine** (`feat/review-engine`): `review_state` and `review_log` tables; `GET /review/due`, `POST /review/:id/grade`; SM-2 logic.
@@ -58,6 +64,12 @@ curl -s localhost:8080/health     # {"status":"ok"} — 503 if Postgres is down
 docker compose up -d db
 export DATABASE_URL=postgres://user:password@localhost:5432/spacedchess
 go run ./cmd/api                  # API on :8080, override with PORT
+                                  # COOKIE_SECURE=true behind TLS; off by default
+
+# the seeded user is nairwolf / password
+curl -si -c /tmp/c -X POST localhost:8080/auth/login \
+  -d '{"username":"nairwolf","password":"password"}'
+curl -s -b /tmp/c localhost:8080/auth/me
 
 go build ./... && go vet ./... && staticcheck ./... && golangci-lint run
 go test ./...                     # store tests skip unless DATABASE_URL is set
@@ -118,9 +130,9 @@ be trained on.
 
 These are decided, not open questions:
 
-- **v1 is private and single-user.** No sharing, public cards, or community
-  features. Still scope every query by `user_id` — don't assume the single user
-  away in the data model or in queries.
+- **Multi-user, every account private.** Registration is open. No sharing,
+  public cards, or community features — one user's data is never visible to
+  another. Scope every query by `user_id`, always.
 - **No engine (Stockfish) dependency** and **no game import** (Lichess/chess.com)
   in v1.
 - **Grading is binary or self-assessed only.** Do not build three-way or

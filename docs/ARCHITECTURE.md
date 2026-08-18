@@ -61,9 +61,8 @@ consistent with this model.
 - password_hash
 - created_at
 
-Single-user or few-users in practice, but modeled as a proper users table
-from the start (not hardcoded to one user), since session auth requires it
-and it costs nothing extra.
+Multi-user: registration is open and each account's data is private to it.
+Every query is scoped by `user_id`.
 
 ### 3.2 `cards`
 
@@ -170,9 +169,7 @@ route naming/versioning left to the implementer, but should cover at
 minimum:
 
 ### Auth
-- Register (if self-registration is desired for a self-hosted single/few
-  user tool — otherwise a seeded/admin-created user is acceptable; use
-  judgment)
+- Register (open self-registration)
 - Login / logout
 - Current user info
 
@@ -233,9 +230,9 @@ These are product decisions with architectural implications; restated here
 so they aren't accidentally violated during implementation:
 
 - No public/shared data of any kind. All data is scoped to `user_id` and
-  never exposed cross-user. Even though this is currently single/few-user,
-  proper scoping should exist in the data model and every query, not be
-  assumed away.
+  never exposed cross-user. Registration is open, so cross-user leakage is a
+  real failure mode, not a hypothetical one: scoping must exist in the data
+  model and in every query.
 - No engine (Stockfish) integration in v1. Do not add an engine dependency.
 - No external game-import integration (Lichess API, etc.) in v1.
 - Grading is binary/self-assessed only — do not build multi-value grading

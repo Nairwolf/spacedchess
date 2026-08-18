@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-A private, personal web application for chess improvement. The user manually
+A private, personal web application for chess improvement. Each user manually
 curates positions from their own games (or elsewhere) representing mistakes
 or missed opportunities worth remembering, and reviews them over time using
 spaced repetition (SRS), with the goal of internalizing patterns and avoiding
@@ -22,12 +22,12 @@ generated or auto-detected.
   and tags are written by the user. This is deliberate: automated
   classification of tactical motifs or strategic themes is unreliable and
   would undermine trust in the tool.
-- **v1 is single-user and 100% private.** No sharing, no community features,
-  no public data. This may be revisited in a future version, but the initial
-  product must work well as a private tool before any public/community layer
-  is considered. Nothing in the architecture should make that future
-  direction impossible, but nothing should be built for it prematurely
-  either.
+- **Multi-user, but every account is 100% private.** Anyone can register an
+  account; nothing they create is visible to anyone else. No sharing, no
+  community features, no public data. A public/community layer may be
+  revisited in a future version, but the product must work well as a private
+  tool first. Nothing in the architecture should make that future direction
+  impossible, but nothing should be built for it prematurely either.
 - **Simplicity over completeness.** Where a feature could be simple (binary
   grading, single accepted solution, manual FEN entry) or complex (partial
   credit, multi-solution acceptance via engine analysis, game import), v1
