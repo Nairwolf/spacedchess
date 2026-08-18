@@ -10,3 +10,23 @@ services:
       - POSTGRES_DB=spacedchess
     volumes:
       - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # -h 127.0.0.1 forces a TCP check. Without it, this can pass against the
+      # entrypoint's temporary Unix-socket-only server that runs while ./init
+      # executes, before the real Postgres is listening.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U user -d spacedchess"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://user:password@db:5432/spacedchess
+      - PORT=8080
+    depends_on:
+      db:
+        condition: service_healthy

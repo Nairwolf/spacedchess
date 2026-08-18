@@ -25,7 +25,8 @@ short-lived branches; nothing lands on `main` until the slice is working.
 SpacedChess is in early implementation. The repository has design documentation,
 a throwaway Postgres dev environment that seeds itself on every start, and a Go
 API wired to Postgres via a pgx pool — but no product endpoints yet, only
-`/health`.
+`/health`. Both services run in Compose; `db`'s healthcheck gates `api`'s
+startup, so the API never races Postgres coming up.
 
 Schema so far: `users` and `sessions` are real; the `cards` table in
 `init/001_init.sql` is still the original placeholder and gets redesigned in
@@ -49,16 +50,24 @@ Mark slices done as they land.
 ## Commands
 
 ```sh
-docker compose up -d              # start Postgres (5432, user/password)
+docker compose up -d --build      # Postgres + API (5432, 8080); waits for db healthy
 docker compose exec db psql -U user -d spacedchess
+curl -s localhost:8080/health     # {"status":"ok"} — 503 if Postgres is down
 
+# or run the API on the host, against Compose's Postgres — faster inner loop:
+docker compose up -d db
 export DATABASE_URL=postgres://user:password@localhost:5432/spacedchess
 go run ./cmd/api                  # API on :8080, override with PORT
-curl -s localhost:8080/health     # {"status":"ok"} — 503 if Postgres is down
 
 go build ./... && go vet ./... && staticcheck ./... && golangci-lint run
 go test ./...                     # store tests skip unless DATABASE_URL is set
 ```
+
+Code changes to the API need `docker compose up -d --build` to take effect —
+there is no live reload. `Dockerfile` is a multi-stage build (`golang:1.26` →
+`distroless/static-debian12`); `db`'s healthcheck runs `pg_isready -h
+127.0.0.1` specifically, since a bare `pg_isready` can pass against the
+entrypoint's temporary socket-only server before Postgres is really listening.
 
 The database is **throwaway** — there is no named volume. `./init` is mounted
 into the container's entrypoint dir and its files run in filename order on every

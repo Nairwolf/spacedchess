@@ -86,8 +86,30 @@ Expect `users`, `cards`, and `sessions`.
 
 ## Running the API
 
-The Go API runs on the host against the Compose database. `DATABASE_URL` is
-required; `PORT` defaults to `8080`.
+Two ways to run it, pick whichever suits what you're doing.
+
+### All in Compose
+
+The API runs as its own service, built from `Dockerfile`. Compose won't start
+`api` until `db`'s healthcheck passes — the healthcheck itself connects over
+TCP, since a plain `pg_isready` can report ready too early, against the
+entrypoint's temporary socket-only server that runs while `./init` executes.
+
+```sh
+docker compose up -d --build
+curl -s localhost:8080/health
+docker compose logs -f api
+```
+
+Code changes need a rebuild to take effect — `docker compose up -d --build`
+again. There's no live reload; the Dockerfile is meant to reflect the eventual
+production build, not optimize the inner loop.
+
+### On the host
+
+Faster when iterating on `internal/` packages — no image rebuild. Needs
+Postgres running in Compose (`docker compose up -d db`) and `DATABASE_URL`
+pointed at `localhost` rather than the Compose service name:
 
 ```sh
 export DATABASE_URL=postgres://user:password@localhost:5432/spacedchess
@@ -100,7 +122,7 @@ curl -s localhost:8080/health
 
 `/health` pings Postgres, so it reports what the API can actually do:
 `{"status":"ok"}` with a 200, or `{"status":"unavailable"}` with a 503 when the
-database is unreachable. Try `docker compose stop` and call it again.
+database is unreachable. Try `docker compose stop db` and call it again.
 
 ### Build, test, lint
 
