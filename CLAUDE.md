@@ -23,8 +23,9 @@ short-lived branches; nothing lands on `main` until the slice is working.
 ## Project state
 
 SpacedChess is in early implementation. The repository has design documentation,
-a throwaway Postgres dev environment that seeds itself on every start, and a
-basic Go API skeleton (health endpoint, no database wiring yet).
+a throwaway Postgres dev environment that seeds itself on every start, and a Go
+API wired to Postgres via a pgx pool — but no product endpoints yet, only
+`/health`.
 
 Schema so far: `users` and `sessions` are real; the `cards` table in
 `init/001_init.sql` is still the original placeholder and gets redesigned in
@@ -36,7 +37,7 @@ Each slice is one short-lived feature branch merged to `main` when working and t
 Mark slices done as they land.
 
 - [x] **Slice 1 — Auth schema** (`feat/db-schema`): `users` + `sessions` tables in `init/001_init.sql`. Remaining tables land in the slices that need them.
-- [ ] **Slice 2 — Go project structure** (`feat/go-skeleton`): `go.mod`, `cmd/api/main.go`, `internal/` layout, env-var config, DB connection pool, health endpoint wired properly.
+- [x] **Slice 2 — Go project structure** (`feat/go-skeleton`): `go.mod`, `cmd/api/main.go`, `internal/` layout, env-var config, DB connection pool, health endpoint wired properly.
 - [ ] **Slice 3 — Auth** (`feat/auth`): register, login, logout endpoints; session-cookie middleware; password hashing.
 - [ ] **Slice 4 — Card CRUD** (`feat/card-crud`): `cards` table (real schema, replacing the placeholder); full CRUD behind auth middleware; list filterable by type/tag/set.
 - [ ] **Slice 5 — Tags & Sets** (`feat/tags-sets`): `tags`, `card_tags`, `sets`, `set_cards` tables; tag and set CRUD; join management.
@@ -50,6 +51,13 @@ Mark slices done as they land.
 ```sh
 docker compose up -d              # start Postgres (5432, user/password)
 docker compose exec db psql -U user -d spacedchess
+
+export DATABASE_URL=postgres://user:password@localhost:5432/spacedchess
+go run ./cmd/api                  # API on :8080, override with PORT
+curl -s localhost:8080/health     # {"status":"ok"} — 503 if Postgres is down
+
+go build ./... && go vet ./... && staticcheck ./... && golangci-lint run
+go test ./...                     # store tests skip unless DATABASE_URL is set
 ```
 
 The database is **throwaway** — there is no named volume. `./init` is mounted
@@ -65,8 +73,7 @@ The `-v` matters: the postgres image declares `VOLUME /var/lib/postgresql`, so
 Docker creates an anonymous volume regardless. Without `-v` those accumulate as
 dangling volumes and the reset is not clean.
 
-Build/test/lint commands for the Go API and React frontend do not exist yet; add
-them here when those parts land.
+Frontend commands do not exist yet; add them here when that part lands.
 
 ## Documentation is the source of truth
 

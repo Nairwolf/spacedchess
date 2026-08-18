@@ -5,7 +5,8 @@ over time, using spaced repetition.
 
 ## Development
 
-Only Postgres runs in Compose for now; the Go API is run directly on the host.
+Only Postgres runs in Compose; the Go API is run directly on the host (see
+[Running the API](#running-the-api)).
 
 ### Start and stop
 
@@ -82,3 +83,35 @@ docker compose exec -T db psql -U user -d spacedchess -c '\dt'
 ```
 
 Expect `users`, `cards`, and `sessions`.
+
+## Running the API
+
+The Go API runs on the host against the Compose database. `DATABASE_URL` is
+required; `PORT` defaults to `8080`.
+
+```sh
+export DATABASE_URL=postgres://user:password@localhost:5432/spacedchess
+go run ./cmd/api
+```
+
+```sh
+curl -s localhost:8080/health
+```
+
+`/health` pings Postgres, so it reports what the API can actually do:
+`{"status":"ok"}` with a 200, or `{"status":"unavailable"}` with a 503 when the
+database is unreachable. Try `docker compose stop` and call it again.
+
+### Build, test, lint
+
+```sh
+go build ./...
+go vet ./...
+staticcheck ./...
+golangci-lint run
+go test ./...
+```
+
+The `internal/store` tests need a live database and skip themselves when
+`DATABASE_URL` is unset, so `go test ./...` passes without Docker running. Export
+it to include them.
